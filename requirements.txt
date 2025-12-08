@@ -3,3 +3,4 @@ PyMySQL==1.1.0
 cryptography==41.0.7
 gunicorn==21.2.0
 dj-database-url==2.1.0
+django-cors-headers==3.14.0
