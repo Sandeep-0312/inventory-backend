@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import pymysql
 pymysql.install_as_MySQLdb()
 from pathlib import Path
+import dj_database_url
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -80,15 +81,12 @@ WSGI_APPLICATION = 'inventory.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'inventory_db',
-        'USER': 'root',
-        'PASSWORD': 'PADS9229',
-        'HOST': '127.0.0.1',
-        'PORT': '3306',
-    }
+    'default': dj_database_url.parse(
+        "mysql://root:HfdoJsZjTNwmpDjkJSMDwtkXpaxpqwLy@turntable.proxy.rlwy.net:34481/railway",
+        conn_max_age=600
+    )
 }
+
 
 
 # Password validation
