@@ -1,43 +1,38 @@
-from django.shortcuts import get_object_or_404
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from .models import Product
-import json
 
-
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def product_list(request):
-    products = list(Product.objects.values())
-    return JsonResponse({'products': products})
+    products = Product.objects.all().values()
+    return Response({"products": list(products)})
 
-
-@csrf_exempt
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def add_product(request):
-    if request.method == 'POST':
-        data = json.loads(request.body.decode('utf-8'))
-        Product.objects.create(
-            name=data['name'],
-            quantity=data['quantity'],
-            price=data['price']
-        )
-        return JsonResponse({'message': 'Product added successfully'})
-    return JsonResponse({'error': 'Invalid request'}, status=400)
+    data = request.data
+    Product.objects.create(
+        name=data['name'],
+        quantity=data['quantity'],
+        price=data['price']
+    )
+    return Response({"message": "Product added"})
 
-@csrf_exempt
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def edit_product(request, pk):
-    product = get_object_or_404(Product, pk=pk)
-    if request.method == 'POST':
-        data = json.loads(request.body.decode('utf-8'))
-        product.name = data['name']
-        product.quantity = data['quantity']
-        product.price = data['price']
-        product.save()
-        return JsonResponse({'message': 'Product updated successfully'})
-    return JsonResponse({'error': 'Invalid request'}, status=400)
+    data = request.data
+    product = Product.objects.get(id=pk)
+    product.name = data['name']
+    product.quantity = data['quantity']
+    product.price = data['price']
+    product.save()
+    return Response({"message": "Product updated"})
 
-@csrf_exempt
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def delete_product(request, pk):
-    product = get_object_or_404(Product, pk=pk)
-    if request.method == 'POST':
-        product.delete()
-        return JsonResponse({'message': 'Product deleted successfully'})
-    return JsonResponse({'error': 'Invalid request'}, status=400)
+    Product.objects.get(id=pk).delete()
+    return Response({"message": "Product deleted"})

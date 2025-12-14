@@ -1,1 +1,1 @@
-web: gunicorn inventory.wsgi:application --preload
+web: gunicorn inventory.wsgi

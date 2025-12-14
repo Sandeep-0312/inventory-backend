@@ -13,8 +13,14 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import pymysql
 pymysql.install_as_MySQLdb()
 from pathlib import Path
-import dj_database_url
+from datetime import timedelta
 
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ROTATE_REFRESH_TOKENS": False,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,9 +33,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-exf#e0l6ij=o&&3d1h$tmy-s493%r0)5yrq88h)7br7^=e=ilq'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ['web-production-44b63.up.railway.app']
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -42,7 +48,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'products',
+    'accounts',
     'corsheaders',
+    'rest_framework',
+    'rest_framework.authtoken',
 ]
 
 MIDDLEWARE = [
@@ -54,7 +63,17 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticated",  # default: require auth globally (optional)
+    ),
+}
 
 ROOT_URLCONF = 'inventory.urls'
 
@@ -81,10 +100,14 @@ WSGI_APPLICATION = 'inventory.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    'default': dj_database_url.parse(
-        "mysql://root:HfdoJsZjTNwmpDjkJSMDwtkXpaxpqwLy@turntable.proxy.rlwy.net:34481/railway",
-        conn_max_age=600
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'inventory_db',
+        'USER': 'root',
+        'PASSWORD': 'PADS9229',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',
+    }
 }
 
 
