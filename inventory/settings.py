@@ -15,7 +15,7 @@ from pathlib import Path
 from datetime import timedelta
 import pymysql
 pymysql.install_as_MySQLdb()
-import dj_database_url 
+
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "unsafe-dev-key")
 
@@ -102,10 +102,19 @@ WSGI_APPLICATION = 'inventory.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    "default": dj_database_url.parse(
-        os.environ["MYSQL_URL"]
-    )
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": os.environ.get("MYSQLDATABASE"),
+        "USER": os.environ.get("MYSQLUSER"),
+        "PASSWORD": os.environ.get("MYSQLPASSWORD"),
+        "HOST": os.environ.get("MYSQLHOST"),
+        "PORT": os.environ.get("MYSQLPORT", "3306"),
+        "OPTIONS": {
+            "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
+    }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
