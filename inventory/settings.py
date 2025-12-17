@@ -11,12 +11,13 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 import os
+import logging
 from pathlib import Path
 from datetime import timedelta
 import pymysql
 import dj_database_url
 pymysql.install_as_MySQLdb()
-
+logger = logging.getLogger(__name__)
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "unsafe-dev-key")
 
@@ -103,14 +104,33 @@ WSGI_APPLICATION = 'inventory.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 
+# Replace your current DATABASES configuration with this:
+
 DATABASES = {
-    "default": dj_database_url.parse(
-        os.environ.get("MYSQL_URL"),
-        conn_max_age=600,
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'HOST': os.environ.get('MYSQLHOST'),  # Uses MYSQLHOST from Railway
+        'PORT': os.environ.get('MYSQLPORT'),  # Uses MYSQLPORT from Railway
+        'NAME': os.environ.get('MYSQLDATABASE'),  # Uses MYSQLDATABASE from Railway
+        'USER': os.environ.get('MYSQLUSER'),  # Uses MYSQLUSER from Railway
+        'PASSWORD': os.environ.get('MYSQLPASSWORD'),  # Uses MYSQLPASSWORD from Railway
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        }
+    }
 }
 
+mysql_url = os.environ.get("MYSQL_URL")
+logger.warning(f"MYSQL_URL: {mysql_url}")
 
+# Hide password for logging (safety)
+if mysql_url:
+    safe_url = mysql_url.replace(
+        mysql_url.split('@')[0].split(':')[1] if ':' in mysql_url.split('@')[0] else '',
+        '***'
+    ) if '@' in mysql_url else mysql_url
+    logger.warning(f"MYSQL_URL (safe): {safe_url}")
 
 
 
