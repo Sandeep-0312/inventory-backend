@@ -12,11 +12,10 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 import os
 from pathlib import Path
-import pymysql
-pymysql.install_as_MySQLdb()
-
 from datetime import timedelta
+import dj_database_url
 
+SECRET_KEY = os.environ.get("SECRET_KEY", "unsafe-dev-key")
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
@@ -33,17 +32,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-exf#e0l6ij=o&&3d1h$tmy-s493%r0)5yrq88h)7br7^=e=ilq'
+# SECRET_KEY = 'django-insecure-exf#e0l6ij=o&&3d1h$tmy-s493%r0)5yrq88h)7br7^=e=ilq'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = DEBUG = os.getenv("DEBUG", "False") == "True"
+DEBUG = False
 
-ALLOWED_HOSTS = os.getenv(
-    "ALLOWED_HOSTS",
-    "localhost,127.0.0.1"
-).split(",")
-
-
+ALLOWED_HOSTS = ["*"]
 
 # Application definition
 
@@ -70,7 +64,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
 ]
 
 REST_FRAMEWORK = {
@@ -107,19 +100,10 @@ WSGI_APPLICATION = 'inventory.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": os.getenv("railway"),
-        "USER": os.getenv("root"),
-        "PASSWORD": os.getenv("MSgGJfsNuJwDNLXqzmwKFRCDQlsjKCof"),
-        "HOST": os.getenv("mysql.railway.internal"),
-        "PORT": os.getenv("3306"),
-    }
+    "default": dj_database_url.parse(
+        os.environ["MYSQL_URL"]
+    )
 }
-
-
-
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -156,6 +140,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
