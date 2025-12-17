@@ -13,7 +13,9 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import os
 from pathlib import Path
 from datetime import timedelta
-import dj_database_url
+import pymysql
+pymysql.install_as_MySQLdb()
+import dj_database_url 
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "unsafe-dev-key")
 

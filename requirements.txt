@@ -2,6 +2,6 @@ Django==4.2.27
 gunicorn
 django-cors-headers
 dj-database-url
-mysqlclient
+PyMySQL
 djangorestframework
 djangorestframework-simplejwt
