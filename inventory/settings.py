@@ -105,6 +105,15 @@ WSGI_APPLICATION = 'inventory.wsgi.application'
 
 
 # Replace your current DATABASES configuration with this:
+# DEBUG: Check environment variables
+
+print("=== DEBUG: Checking MySQL Variables ===")
+print(f"MYSQLHOST: {os.environ.get('MYSQLHOST')}")
+print(f"MYSQLPORT: {os.environ.get('MYSQLPORT')}")
+print(f"MYSQLUSER: {os.environ.get('MYSQLUSER')}")
+print(f"MYSQLDATABASE: {os.environ.get('MYSQLDATABASE')}")
+print(f"MYSQLPASSWORD present: {'YES' if os.environ.get('MYSQLPASSWORD') else 'NO'}")
+print("======================================")
 
 DATABASES = {
     'default': {
@@ -121,16 +130,7 @@ DATABASES = {
         }
     }
 }
-mysql_url = os.environ.get("MYSQL_URL")
-logger.warning(f"MYSQL_URL: {mysql_url}")
 
-# Hide password for logging (safety)
-if mysql_url:
-    safe_url = mysql_url.replace(
-        mysql_url.split('@')[0].split(':')[1] if ':' in mysql_url.split('@')[0] else '',
-        '***'
-    ) if '@' in mysql_url else mysql_url
-    logger.warning(f"MYSQL_URL (safe): {safe_url}")
 
 
 
