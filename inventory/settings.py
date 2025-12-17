@@ -109,18 +109,18 @@ WSGI_APPLICATION = 'inventory.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'HOST': os.environ.get('MYSQLHOST'),  # Uses MYSQLHOST from Railway
-        'PORT': os.environ.get('MYSQLPORT'),  # Uses MYSQLPORT from Railway
-        'NAME': os.environ.get('MYSQLDATABASE'),  # Uses MYSQLDATABASE from Railway
-        'USER': os.environ.get('MYSQLUSER'),  # Uses MYSQLUSER from Railway
-        'PASSWORD': os.environ.get('MYSQLPASSWORD'),  # Uses MYSQLPASSWORD from Railway
+        'HOST': os.environ.get('MYSQLHOST'),
+        'PORT': os.environ.get('MYSQLPORT'),
+        'NAME': os.environ.get('MYSQLDATABASE'),
+        'USER': os.environ.get('MYSQLUSER'),
+        'PASSWORD': os.environ.get('MYSQLPASSWORD'),
         'OPTIONS': {
             'charset': 'utf8mb4',
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            'connect_timeout': 30,  # Add timeout
         }
     }
 }
-
 mysql_url = os.environ.get("MYSQL_URL")
 logger.warning(f"MYSQL_URL: {mysql_url}")
 
