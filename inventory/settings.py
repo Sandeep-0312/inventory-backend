@@ -152,23 +152,12 @@ print(f"   DB: {mysql_db}")
 print(f"   User: {mysql_user}")
 print(f"   Password: {'***' if mysql_password else 'MISSING'}")
 
+# Use this database configuration
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'HOST': mysql_host,
-        'PORT': mysql_port,
-        'NAME': mysql_db,
-        'USER': mysql_user,
-        'PASSWORD': mysql_password,
-        'OPTIONS': {
-            'charset': 'utf8mb4',
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-            'connect_timeout': 30,
-            'read_timeout': 30,
-            'write_timeout': 30,
-        },
-        'CONN_MAX_AGE': 600,
-    }
+    "default": dj_database_url.parse(
+        os.environ.get("MYSQL_URL"),  # This will now have the real URL
+        conn_max_age=600,
+    )
 }
 
 # Test connection immediately
