@@ -103,17 +103,13 @@ WSGI_APPLICATION = 'inventory.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 
-
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": os.environ["MYSQLDATABASE"],
-        "USER": os.environ["MYSQLUSER"],
-        "PASSWORD": os.environ["MYSQLPASSWORD"],
-        "HOST": os.environ["MYSQLHOST"],  # mysql.railway.internal
-        "PORT": os.environ.get("MYSQLPORT", "3306"),
-    }
+    "default": dj_database_url.parse(
+        os.environ.get("MYSQL_URL"),
+        conn_max_age=600,
+    )
 }
+
 
 
 
