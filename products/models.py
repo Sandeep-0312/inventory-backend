@@ -9,7 +9,7 @@ class Product(models.Model):
     description = models.TextField(blank=True, null=True)
     
     # FIX: Add default=timezone.now to avoid migration issues
-    created_at = models.DateTimeField(auto_now_add=True, default=timezone.now)
+    created_at = models.DateTimeField(default=timezone.now)
     
     updated_at = models.DateTimeField(auto_now=True)
     
