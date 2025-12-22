@@ -1,9 +1,9 @@
-Django
-djangorestframework
-djangorestframework-simplejwt
-corsheaders
-mysqlclient
-dj-database-url
-PyMySQL
-whitenoise
-gunicorn
+Django==4.2.27
+djangorestframework==3.16.1
+djangorestframework-simplejwt==5.5.1
+django-cors-headers==4.4.0  # Changed from "corsheaders"
+mysqlclient==2.2.4
+dj-database-url==2.2.0
+PyMySQL==1.1.1
+whitenoise==6.7.0
+gunicorn==22.0.0
