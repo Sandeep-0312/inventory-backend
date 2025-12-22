@@ -78,8 +78,10 @@ print(f"Frontend URL: {FRONTEND_URL}")
 CORS_ALLOWED_ORIGINS = [
     FRONTEND_URL,
     "http://localhost:3000",
-    "http://127.0.0.1:3000",
+    "https://inventory-react-psi.vercel.app",
 ]
+
+CORS_ALLOW_CREDENTIALS = True
 
 # Also add the Vercel URL if available
 vercel_url = os.environ.get("VERCEL_URL", "")
