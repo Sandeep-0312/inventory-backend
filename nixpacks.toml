@@ -1,5 +1,0 @@
-[phases.setup]
-nixPkgs = ["python39", "gcc"]
-
-[start]
-cmd = "gunicorn inventory.wsgi"
