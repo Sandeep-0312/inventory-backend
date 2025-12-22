@@ -14,7 +14,8 @@ print("=" * 50)
 
 pymysql.install_as_MySQLdb()
 
-SECRET_KEY = os.environ.get("SECRET_KEY", "unsafe-dev-key")
+# SECURITY: Get SECRET_KEY from Railway environment, use fallback for development
+SECRET_KEY = os.environ.get("SECRET_KEY", "unsafe-dev-key-only-for-development")
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
@@ -24,8 +25,73 @@ SIMPLE_JWT = {
 }
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-DEBUG = False
-ALLOWED_HOSTS = ["*"]
+
+# ==================== ENVIRONMENT DETECTION ====================
+RAILWAY_ENVIRONMENT = os.environ.get("RAILWAY_ENVIRONMENT", "")
+VERCEL_URL = os.environ.get("VERCEL_URL", "")
+
+# Determine if we're in production
+IS_PRODUCTION = bool(RAILWAY_ENVIRONMENT) or bool(VERCEL_URL)
+
+# Debug settings
+DEBUG = not IS_PRODUCTION  # False in production, True in development
+
+# ==================== SECURITY SETTINGS ====================
+if IS_PRODUCTION:
+    print("🔒 PRODUCTION MODE: Enabling security settings")
+    # Security headers
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    
+    # In Railway, you should get the Railway URL from environment
+    railway_public_url = os.environ.get("RAILWAY_PUBLIC_DOMAIN", "")
+    if railway_public_url:
+        ALLOWED_HOSTS = [
+            railway_public_url,
+            "localhost",
+            "127.0.0.1",
+        ]
+    else:
+        ALLOWED_HOSTS = ["*"]  # Fallback
+    
+    # Get Vercel URL from environment for CORS
+    vercel_frontend_url = os.environ.get("VERCEL_URL", "")
+    
+else:
+    print("🔧 DEVELOPMENT MODE")
+    ALLOWED_HOSTS = ["*"]
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+
+print(f"DEBUG: {DEBUG}")
+print(f"ALLOWED_HOSTS: {ALLOWED_HOSTS}")
+
+# ==================== CORS SETTINGS ====================
+# Get frontend URL from environment or use default
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:3000")
+print(f"Frontend URL: {FRONTEND_URL}")
+
+CORS_ALLOWED_ORIGINS = [
+    FRONTEND_URL,
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+# Also add the Vercel URL if available
+vercel_url = os.environ.get("VERCEL_URL", "")
+if vercel_url and vercel_url not in CORS_ALLOWED_ORIGINS:
+    CORS_ALLOWED_ORIGINS.append(vercel_url)
+
+# For development, you might want this, but in production it's better to specify
+CORS_ALLOW_ALL_ORIGINS = not IS_PRODUCTION
+
+CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS.copy()
+
+print(f"CORS Allowed Origins: {CORS_ALLOWED_ORIGINS}")
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -44,6 +110,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # ADD THIS LINE
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -84,17 +151,18 @@ WSGI_APPLICATION = 'inventory.wsgi.application'
 # ==================== DATABASE CONFIGURATION ====================
 print("⚙️ Configuring Database...")
 
-# Get the MYSQL_URL from environment
-mysql_url = os.environ.get("MYSQL_URL")
-print(f"MYSQL_URL: {mysql_url}")
+# Railway provides DATABASE_URL, not MYSQL_URL
+database_url = os.environ.get("DATABASE_URL") or os.environ.get("MYSQL_URL")
+print(f"Database URL available: {bool(database_url)}")
 
-if mysql_url and mysql_url.startswith('mysql://'):
-    print("✅ Using MYSQL_URL connection string")
+if database_url:
+    print("✅ Using DATABASE_URL/MYSQL_URL connection string")
     
     DATABASES = {
         "default": dj_database_url.parse(
-            mysql_url,
+            database_url,
             conn_max_age=600,
+            conn_health_checks=True,
         )
     }
     
@@ -106,12 +174,11 @@ if mysql_url and mysql_url.startswith('mysql://'):
         print("✅ Database connection successful!")
     except Exception as e:
         print(f"⚠️  Note: Could not connect to database during startup: {e}")
-        print("This might be normal if MySQL isn't ready yet. Django will retry.")
+        print("This might be normal if database isn't ready yet. Django will retry.")
         
 else:
-    print("❌ No valid MYSQL_URL found. Using SQLite fallback.")
-    print("Please set MYSQL_URL in Railway to:")
-    print("mysql://root:uwdRTZDyXhLbsAjLgwGKaLsMyFtkVHWn@mysql.railway.internal:3306/railway")
+    print("❌ No DATABASE_URL found. Using SQLite fallback.")
+    print("In Railway, add a PostgreSQL database and DATABASE_URL will be auto-set.")
     
     DATABASES = {
         'default': {
@@ -145,5 +212,12 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# Whitenoise for static files (important for Railway)
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-CORS_ALLOW_ALL_ORIGINS = True
+
+print("=" * 50)
+print("✅ Settings loaded successfully!")
+print("=" * 50)

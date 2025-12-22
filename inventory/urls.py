@@ -1,16 +1,16 @@
 from django.contrib import admin
 from django.urls import path, include
-from products.views import product_list, add_product, edit_product, delete_product
+from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-
-    # Products
-    path('products/', product_list),
-    path('products/add/', add_product),
-    path('products/edit/<int:pk>/', edit_product),
-    path('products/delete/<int:pk>/', delete_product),
-
-    # Auth (JWT)
-    path('auth/', include('accounts.urls')),
+    
+    # Auth (JWT) - accounts app
+    path('api/auth/', include('accounts.urls')),
+    
+    # Products & Purchases - products app
+    path('api/', include('products.urls')),
+    
+    # Token refresh
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
