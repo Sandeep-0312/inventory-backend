@@ -15,26 +15,21 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # --------------------------------------------------
 # Security
 # --------------------------------------------------
-SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-fallback-key-for-dev")
+SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-dev-key-123")
 DEBUG = os.environ.get("DEBUG", "False") == "True"
 
-# Render automatically assigns a URL
-RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS = [RENDER_EXTERNAL_HOSTNAME, 'localhost']
-else:
-    ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
-# Add Render's URL to CSRF trusted origins
-CSRF_TRUSTED_ORIGINS = []
-if RENDER_EXTERNAL_HOSTNAME:
-    CSRF_TRUSTED_ORIGINS.append(f'https://{RENDER_EXTERNAL_HOSTNAME}')
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.up.railway.app",
+    "https://web-production-10eb.up.railway.app",
+]
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 USE_X_FORWARDED_HOST = True
 
-CSRF_COOKIE_SECURE = not DEBUG
-SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
 
 # --------------------------------------------------
 # JWT
@@ -121,13 +116,13 @@ TEMPLATES = [
 ]
 
 # --------------------------------------------------
-# Database (Render PostgreSQL)
+# Database (Railway PostgreSQL)
 # --------------------------------------------------
+# Railway automatically provides DATABASE_URL for PostgreSQL
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL'),
         conn_max_age=600,
-        conn_health_checks=True,
     )
 }
 
@@ -156,19 +151,9 @@ STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Don't store static files in non-UTF-8 encodings
-WHITENOISE_MANIFEST_STRICT = False
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # --------------------------------------------------
 # CORS
 # --------------------------------------------------
-# For development, allow all. For production, restrict to your frontend
 CORS_ALLOW_ALL_ORIGINS = True
-# Or for production:
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:3000",
-#     "http://localhost:5173",
-#     "https://your-frontend.onrender.com",
-# ]
