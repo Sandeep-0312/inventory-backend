@@ -1,3 +1,6 @@
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -20,13 +23,18 @@ class LoginView(APIView):
             user = serializer.validated_data
             refresh = RefreshToken.for_user(user)
             
-            return Response({
+            response = Response({
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
                 'user': UserSerializer(user).data
             })
+            
+            # Add CORS headers
+            response["Access-Control-Allow-Origin"] = "*"
+            response["Access-Control-Allow-Credentials"] = "true"
+            
+            return response
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 class CurrentUserView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     
