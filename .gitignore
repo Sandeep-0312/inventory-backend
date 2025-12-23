@@ -1,7 +1,46 @@
-venv/
+# Create .gitignore if not exists
+cat > .gitignore << 'EOF'
+# Python
 __pycache__/
-*.sqlite3
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
 .env
-*.pyc
+.venv
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Static files
 staticfiles/
-node_modules/
+
+# Media files
+media/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment variables
+.env
+.env.local
+
+# Database backups
+*.dump
+*.sql
+EOF
+
+# Add .gitignore
+git add .gitignore
