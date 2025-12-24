@@ -42,13 +42,51 @@ def add_product(request):
             status=status.HTTP_403_FORBIDDEN
         )
     
-    data = request.data
-    Product.objects.create(
-        name=data['name'],
-        quantity=data['quantity'],
-        price=data['price']
-    )
-    return Response({"message": "Product added"})
+    try:
+        # Handle both JSON and form data
+        if request.content_type == 'application/json':
+            data = request.data
+        else:
+            # Handle regular form data from HTML form
+            data = {
+                'name': request.POST.get('name'),
+                'quantity': request.POST.get('quantity', 0),
+                'price': request.POST.get('price'),
+                'description': request.POST.get('description', '')
+            }
+        
+        # Validate required fields
+        if not data.get('name') or not data.get('price'):
+            return Response(
+                {"error": "Name and price are required"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Create product
+        from decimal import Decimal
+        product = Product.objects.create(
+            name=data['name'],
+            quantity=int(data.get('quantity', 0)),
+            price=Decimal(str(data['price'])),
+            description=data.get('description', '')
+        )
+        
+        return Response({
+            "message": "Product added successfully",
+            "product_id": product.id,
+            "name": product.name
+        }, status=status.HTTP_201_CREATED)
+            
+    except ValueError as e:
+        return Response(
+            {"error": f"Invalid data: {str(e)}"}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    except Exception as e:
+        return Response(
+            {"error": f"Server error: {str(e)}"}, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
