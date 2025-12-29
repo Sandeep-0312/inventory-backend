@@ -69,8 +69,8 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 # --------------------------------------------------
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',  # Make sure this is here
-    'inventory.middleware.CorsMiddleware',  # ADD THIS LINE
+    'django.middleware.common.CommonMiddleware',
+    # REMOVED: 'inventory.middleware.CorsMiddleware',  # This was causing conflicts
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -79,6 +79,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
 # --------------------------------------------------
 # REST Framework
 # --------------------------------------------------
@@ -156,7 +157,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # --------------------------------------------------
-# CORS
+# CORS - Simplified Configuration
 # --------------------------------------------------
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
@@ -169,6 +170,7 @@ CORS_ALLOW_METHODS = [
     "POST",
     "PUT",
 ]
+
 CORS_ALLOW_HEADERS = [
     "accept",
     "accept-encoding",
@@ -179,4 +181,10 @@ CORS_ALLOW_HEADERS = [
     "user-agent",
     "x-csrftoken",
     "x-requested-with",
+]
+
+# Expose these headers to the frontend
+CORS_EXPOSE_HEADERS = [
+    'Content-Type',
+    'Authorization',
 ]

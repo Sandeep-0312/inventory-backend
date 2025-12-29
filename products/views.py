@@ -1,3 +1,4 @@
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -26,12 +27,14 @@ def check_admin(request):
     return request.user.is_superuser
 
 # ================= EXISTING PRODUCT VIEWS (UPDATED) =================
+@csrf_exempt
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def product_list(request):
     products = Product.objects.all().values()
     return Response({"products": list(products)})
 
+@csrf_exempt
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def add_product(request):
@@ -43,17 +46,8 @@ def add_product(request):
         )
     
     try:
-        # Handle both JSON and form data
-        if request.content_type == 'application/json':
-            data = request.data
-        else:
-            # Handle regular form data from HTML form
-            data = {
-                'name': request.POST.get('name'),
-                'quantity': request.POST.get('quantity', 0),
-                'price': request.POST.get('price'),
-                'description': request.POST.get('description', '')
-            }
+        # Get data from request
+        data = request.data
         
         # Validate required fields
         if not data.get('name') or not data.get('price'):
@@ -83,11 +77,16 @@ def add_product(request):
             status=status.HTTP_400_BAD_REQUEST
         )
     except Exception as e:
+        import traceback
+        print("Product creation error:", str(e))
+        print("Traceback:", traceback.format_exc())
+        
         return Response(
             {"error": f"Server error: {str(e)}"}, 
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
+@csrf_exempt
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def edit_product(request, pk):
@@ -106,6 +105,7 @@ def edit_product(request, pk):
     product.save()
     return Response({"message": "Product updated"})
 
+@csrf_exempt
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def delete_product(request, pk):
@@ -121,6 +121,7 @@ def delete_product(request, pk):
     return Response({"message": "Product deleted"})
 
 # ================= NEW PURCHASE VIEWS =================
+@csrf_exempt
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def purchase_list(request):
@@ -158,6 +159,7 @@ def purchase_list(request):
     
     return Response({"purchases": purchases_data})
 
+@csrf_exempt
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_purchase(request):
@@ -245,6 +247,7 @@ def create_purchase(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
+@csrf_exempt
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def update_purchase_status(request, pk):
@@ -280,6 +283,7 @@ def update_purchase_status(request, pk):
             status=status.HTTP_404_NOT_FOUND
         )
 
+@csrf_exempt
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def statistics(request):
