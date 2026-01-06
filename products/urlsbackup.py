@@ -3,22 +3,16 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # Product URLs
+    # ... other URLs ...
     path('products/', views.product_list, name='product_list'),
     path('products/add/', views.add_product, name='add_product'),
     path('products/edit/<int:pk>/', views.edit_product, name='edit_product'),
     path('products/delete/<int:pk>/', views.delete_product, name='delete_product'),
     
-    # Purchase URLs
+    # PURCHASE URLs
     path('purchases/', views.purchase_list, name='purchase_list'),
     path('purchases/create/', views.create_purchase, name='create_purchase'),
-    path('purchases/update-status/<int:pk>/', views.update_purchase_status, name='update_purchase_status'),
+    path('purchases/update-status/<int:pk>/', views.update_purchase_status, name='update_purchase_status'),  # ← MAKE SURE THIS EXISTS
     
-    # NEW TRACKING URLs
-    path('purchases/<int:pk>/tracking/', views.get_purchase_tracking, name='get_purchase_tracking'),
-    path('purchases/<int:pk>/tracking/add/', views.add_tracking_event, name='add_tracking_event'),
-    path('purchases/<int:pk>/tracking-info/', views.update_tracking_info, name='update_tracking_info'),
-    
-    # Statistics
     path('statistics/', views.statistics, name='statistics'),
 ]

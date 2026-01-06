@@ -5,8 +5,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 from django.conf import settings
-from .models import Product, Purchase, PurchaseEvent
-from .serializers import PurchaseEventSerializer, TrackingInfoSerializer
+from .models import Product, Purchase
 
 # ================= PERMISSION CLASSES =================
 class IsAdminUser:
@@ -155,9 +154,6 @@ def purchase_list(request):
             'total_price': float(purchase.total_price),
             'status': purchase.status,
             'notes': purchase.notes,
-            'tracking_number': purchase.tracking_number,
-            'delivery_partner': purchase.delivery_partner,
-            'estimated_delivery': purchase.estimated_delivery.isoformat() if purchase.estimated_delivery else None,
             'created_at': purchase.created_at.isoformat(),
         })
     
@@ -276,26 +272,8 @@ def update_purchase_status(request, pk):
     
     try:
         purchase = Purchase.objects.get(id=pk)
-        old_status = purchase.status
         purchase.status = status_value
         purchase.save()
-        
-        # Auto-create tracking event for status changes
-        if old_status != status_value:
-            event_messages = {
-                'confirmed': 'Your order has been confirmed and is being processed.',
-                'shipped': 'Your order has been shipped and is on its way.',
-                'delivered': 'Your order has been delivered successfully.',
-                'cancelled': 'Your order has been cancelled.',
-            }
-            
-            if status_value in event_messages:
-                PurchaseEvent.objects.create(
-                    purchase=purchase,
-                    event_type=status_value,
-                    event_message=event_messages[status_value],
-                    created_by=request.user
-                )
         
         return Response({"message": "Purchase status updated"})
         
@@ -346,133 +324,3 @@ def statistics(request):
         'recent_purchases': recent_purchases,
         'low_stock': low_stock,
     })
-
-# ================= NEW TRACKING VIEWS =================
-@csrf_exempt
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def get_purchase_tracking(request, pk):
-    """
-    Get tracking events for a purchase
-    Customers can only see their own purchases
-    Admins can see all
-    """
-    try:
-        purchase = Purchase.objects.get(id=pk)
-        
-        # Check permission
-        if not check_admin(request) and purchase.customer != request.user:
-            return Response(
-                {"error": "You don't have permission to view this order"}, 
-                status=status.HTTP_403_FORBIDDEN
-            )
-        
-        # Get tracking events
-        events = purchase.tracking_events.all()
-        serializer = PurchaseEventSerializer(events, many=True)
-        
-        return Response({
-            "purchase_id": purchase.id,
-            "tracking_number": purchase.tracking_number,
-            "delivery_partner": purchase.delivery_partner,
-            "estimated_delivery": purchase.estimated_delivery,
-            "actual_delivery": purchase.actual_delivery,
-            "current_status": purchase.status,
-            "events": serializer.data
-        })
-        
-    except Purchase.DoesNotExist:
-        return Response(
-            {"error": "Purchase not found"}, 
-            status=status.HTTP_404_NOT_FOUND
-        )
-
-@csrf_exempt
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def add_tracking_event(request, pk):
-    """
-    Add a new tracking event to a purchase (admin only)
-    """
-    # Check if user is admin
-    if not check_admin(request):
-        return Response(
-            {"error": "Admin access required"}, 
-            status=status.HTTP_403_FORBIDDEN
-        )
-    
-    try:
-        purchase = Purchase.objects.get(id=pk)
-        data = request.data
-        
-        # Validate required fields
-        if not data.get('event_type'):
-            return Response(
-                {"error": "event_type is required"}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        if not data.get('event_message'):
-            return Response(
-                {"error": "event_message is required"}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        # Create tracking event
-        event = PurchaseEvent.objects.create(
-            purchase=purchase,
-            event_type=data['event_type'],
-            event_message=data['event_message'],
-            created_by=request.user
-        )
-        
-        serializer = PurchaseEventSerializer(event)
-        
-        return Response({
-            "message": "Tracking event added successfully",
-            "event": serializer.data
-        }, status=status.HTTP_201_CREATED)
-        
-    except Purchase.DoesNotExist:
-        return Response(
-            {"error": "Purchase not found"}, 
-            status=status.HTTP_404_NOT_FOUND
-        )
-    except Exception as e:
-        return Response(
-            {"error": f"Server error: {str(e)}"}, 
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-
-@csrf_exempt
-@api_view(['PUT'])
-@permission_classes([IsAuthenticated])
-def update_tracking_info(request, pk):
-    """
-    Update tracking information (tracking number, delivery partner, etc.) - Admin only
-    """
-    # Check if user is admin
-    if not check_admin(request):
-        return Response(
-            {"error": "Admin access required"}, 
-            status=status.HTTP_403_FORBIDDEN
-        )
-    
-    try:
-        purchase = Purchase.objects.get(id=pk)
-        serializer = TrackingInfoSerializer(purchase, data=request.data, partial=True)
-        
-        if serializer.is_valid():
-            serializer.save()
-            return Response({
-                "message": "Tracking information updated successfully",
-                "tracking_info": serializer.data
-            })
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-    except Purchase.DoesNotExist:
-        return Response(
-            {"error": "Purchase not found"}, 
-            status=status.HTTP_404_NOT_FOUND
-        )

@@ -1,33 +1,14 @@
 from rest_framework import serializers
-from .models import Product, Purchase, PurchaseEvent
+from .models import Product, Purchase
 
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = '__all__'
 
-
-class PurchaseEventSerializer(serializers.ModelSerializer):
-    event_type_display = serializers.CharField(source='get_event_type_display', read_only=True)
-    created_by_username = serializers.CharField(source='created_by.username', read_only=True)
-    
-    class Meta:
-        model = PurchaseEvent
-        fields = [
-            'id', 
-            'event_type', 
-            'event_type_display',
-            'event_message', 
-            'timestamp',
-            'created_by_username'
-        ]
-        read_only_fields = ['id', 'timestamp', 'created_by_username']
-
-
 class PurchaseSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)
     product_price = serializers.DecimalField(source='product.price', max_digits=10, decimal_places=2, read_only=True)
-    tracking_events = PurchaseEventSerializer(many=True, read_only=True)
     
     class Meta:
         model = Purchase
@@ -45,11 +26,3 @@ class PurchaseSerializer(serializers.ModelSerializer):
         validated_data['total_price'] = product.price * validated_data['quantity']
         
         return super().create(validated_data)
-
-
-class TrackingInfoSerializer(serializers.ModelSerializer):
-    """Serializer for updating tracking information"""
-    
-    class Meta:
-        model = Purchase
-        fields = ['tracking_number', 'delivery_partner', 'estimated_delivery', 'actual_delivery']

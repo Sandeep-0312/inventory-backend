@@ -1,5 +1,5 @@
 from django.db import models
-from django.conf import settings
+from django.conf import settings  # DO NOT import CustomUser directly!
 
 
 class Product(models.Model):
@@ -55,12 +55,6 @@ class Purchase(models.Model):
     )
     notes = models.TextField(blank=True, null=True)
 
-    # NEW TRACKING FIELDS
-    tracking_number = models.CharField(max_length=100, blank=True, null=True)
-    delivery_partner = models.CharField(max_length=100, blank=True, null=True)
-    estimated_delivery = models.DateTimeField(blank=True, null=True)
-    actual_delivery = models.DateTimeField(blank=True, null=True)
-
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -70,54 +64,4 @@ class Purchase(models.Model):
     def save(self, *args, **kwargs):
         if not self.total_price:
             self.total_price = self.product.price * self.quantity
-        
-        # Check if this is a new purchase
-        is_new = self.pk is None
-        
         super().save(*args, **kwargs)
-        
-        # Create initial tracking event for new purchases
-        if is_new:
-            PurchaseEvent.objects.create(
-                purchase=self,
-                event_type='confirmed',
-                event_message='Your order has been placed.',
-                created_by=self.customer
-            )
-
-
-class PurchaseEvent(models.Model):
-    """Tracks the timeline of events for each purchase"""
-    
-    EVENT_TYPES = [
-        ('confirmed', 'Order Confirmed'),
-        ('processed', 'Order Processed'),
-        ('picked_up', 'Picked Up by Delivery Partner'),
-        ('shipped', 'Shipped'),
-        ('in_transit', 'In Transit'),
-        ('reached_hub', 'Reached Local Hub'),
-        ('out_for_delivery', 'Out for Delivery'),
-        ('delivered', 'Delivered'),
-        ('cancelled', 'Cancelled'),
-    ]
-    
-    purchase = models.ForeignKey(
-        Purchase,
-        on_delete=models.CASCADE,
-        related_name='tracking_events'
-    )
-    event_type = models.CharField(max_length=50, choices=EVENT_TYPES)
-    event_message = models.TextField()
-    timestamp = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name='created_events'
-    )
-    
-    class Meta:
-        ordering = ['timestamp']
-    
-    def __str__(self):
-        return f"{self.purchase.id} - {self.get_event_type_display()} - {self.timestamp}"
